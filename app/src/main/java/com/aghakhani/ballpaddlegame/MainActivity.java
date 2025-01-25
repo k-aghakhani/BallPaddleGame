@@ -1,24 +1,89 @@
 package com.aghakhani.ballpaddlegame;
 
+import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
+import android.view.MotionEvent;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
+
+    private BallView ballView;
+    private PaddleView paddleView;
+    private RelativeLayout gameLayout;
+    private TextView scoreTextView;
+    private int score = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Create the game layout
+        gameLayout = new RelativeLayout(this);
+        gameLayout.setBackgroundColor(Color.BLACK);
+
+        // Create and add the ball view
+        ballView = new BallView(this);
+        gameLayout.addView(ballView);
+
+        // Create and add the paddle view
+        paddleView = new PaddleView(this);
+        gameLayout.addView(paddleView);
+
+        // Create and add the score text view
+        scoreTextView = new TextView(this);
+        scoreTextView.setTextColor(Color.WHITE);
+        scoreTextView.setTextSize(24);
+        scoreTextView.setText("Score: 0");
+        RelativeLayout.LayoutParams scoreParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+        );
+        scoreParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        scoreParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        gameLayout.addView(scoreTextView, scoreParams);
+
+        setContentView(gameLayout);
+
+        // Start the game loop
+        startGameLoop();
+    }
+
+    private void startGameLoop() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(16); // Approximately 60 FPS
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                runOnUiThread(() -> {
+                    ballView.update();
+
+                    if (ballView.isCollidingWith(paddleView)) {
+                        score++;
+                        ballView.bounceOffPaddle();
+                        ballView.increaseSpeed();
+                        scoreTextView.setText("Score: " + score);
+                    } else if (ballView.isOutOfBounds()) {
+                        scoreTextView.setText("Game Over! Final Score: " + score);
+                        ballView.reset();
+                        score = 0;
+                    }
+                });
+            }
+        }).start();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                paddleView.setPaddlePosition(event.getX());
+                break;
+        }
+        return true;
     }
 }
