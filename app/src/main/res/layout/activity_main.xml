@@ -13,20 +13,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
         android:text="Score: 0"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:background="@drawable/score_background"
         android:padding="16dp"
         android:elevation="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:shadowColor="#000000"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="4" />
+        android:fontFamily="sans-serif-medium" />
 
     <!-- Placeholder for Ball and Paddle -->
     <!-- These will be dynamically added in MainActivity -->
+    <FrameLayout
+        android:id="@+id/gameContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="72dp" />
 
 </RelativeLayout>

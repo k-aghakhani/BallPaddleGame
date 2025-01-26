@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         // Create the game layout
         gameLayout = new RelativeLayout(this);
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
         scoreTextView.setTextColor(Color.WHITE);
         scoreTextView.setTextSize(24);
         scoreTextView.setText("Score: 0");
+
+        // Set the background for the score TextView
+        scoreTextView.setBackgroundResource(R.drawable.score_background);
+
         RelativeLayout.LayoutParams scoreParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT
