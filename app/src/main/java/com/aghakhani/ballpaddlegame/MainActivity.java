@@ -1,14 +1,12 @@
 package com.aghakhani.ballpaddlegame;
 
-
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
-import android.widget.RelativeLayout;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BallView ballView;
     private PaddleView paddleView;
-    private RelativeLayout gameLayout;
+    private FrameLayout gameContainer;
     private TextView scoreTextView;
     private int score = 0;
     private boolean isGameRunning = false;
@@ -28,36 +26,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Create the game layout
-        gameLayout = new RelativeLayout(this);
-        gameLayout.setBackgroundColor(Color.BLACK);
+        // Initialize views
+        scoreTextView = findViewById(R.id.scoreTextView);
+        gameContainer = findViewById(R.id.gameContainer);
 
         // Create and add the ball view
         ballView = new BallView(this);
-        gameLayout.addView(ballView);
+        gameContainer.addView(ballView);
 
         // Create and add the paddle view
         paddleView = new PaddleView(this);
-        gameLayout.addView(paddleView);
-
-        // Create and add the score text view
-        scoreTextView = new TextView(this);
-        scoreTextView.setTextColor(Color.WHITE);
-        scoreTextView.setTextSize(24);
-        scoreTextView.setText("Score: 0");
-
-        // Set the background for the score TextView
-        scoreTextView.setBackgroundResource(R.drawable.score_background);
-
-        RelativeLayout.LayoutParams scoreParams = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-        scoreParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        scoreParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        gameLayout.addView(scoreTextView, scoreParams);
-
-        setContentView(gameLayout);
+        gameContainer.addView(paddleView);
 
         // Start the game
         startGameLoop();
