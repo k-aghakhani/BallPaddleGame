@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout gameLayout;
     private TextView scoreTextView;
     private int score = 0;
+    private boolean isGameRunning = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startGameLoop() {
         new Thread(() -> {
-            while (true) {
+            while (isGameRunning) {
                 try {
                     Thread.sleep(16); // Approximately 60 FPS
                 } catch (InterruptedException e) {
@@ -78,29 +80,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showGameOverDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Game Over");
-        builder.setMessage("Your final score: " + score);
-        builder.setCancelable(false);
-        builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                resetGame();
-            }
+        if (isFinishing() || isDestroyed()) return;
+
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Game Over");
+            builder.setMessage("Your final score: " + score);
+            builder.setCancelable(false);
+            builder.setPositiveButton("Restart", (dialog, which) -> resetGame());
+            builder.setNegativeButton("Exit", (dialog, which) -> finish());
+            builder.show();
         });
-        builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                finish();
-            }
-        });
-        builder.show();
     }
 
     private void resetGame() {
         score = 0;
         scoreTextView.setText("Score: 0");
         ballView.reset();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        isGameRunning = false;
     }
 
     @Override
