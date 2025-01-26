@@ -1,5 +1,7 @@
 package com.aghakhani.ballpaddlegame;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -68,13 +70,37 @@ public class MainActivity extends AppCompatActivity {
                         ballView.increaseSpeed();
                         scoreTextView.setText("Score: " + score);
                     } else if (ballView.isOutOfBounds()) {
-                        scoreTextView.setText("Game Over! Final Score: " + score);
-                        ballView.reset();
-                        score = 0;
+                        showGameOverDialog();
                     }
                 });
             }
         }).start();
+    }
+
+    private void showGameOverDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Game Over");
+        builder.setMessage("Your final score: " + score);
+        builder.setCancelable(false);
+        builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                resetGame();
+            }
+        });
+        builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
+    }
+
+    private void resetGame() {
+        score = 0;
+        scoreTextView.setText("Score: 0");
+        ballView.reset();
     }
 
     @Override
