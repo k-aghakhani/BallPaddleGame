@@ -2,6 +2,7 @@ package com.aghakhani.ballpaddlegame;
 
 import android.app.AlertDialog;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,7 +12,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-
+    private MediaPlayer mediaPlayer;
     private BallView ballView;
     private PaddleView paddleView;
     private FrameLayout gameContainer;
@@ -37,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         // Create and add the paddle view
         paddleView = new PaddleView(this);
         gameContainer.addView(paddleView);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
 
         // Start the game
         startGameLoop();
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         if (isFinishing() || isDestroyed()) return;
 
         mainHandler.post(() -> {
+            mediaPlayer.start();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Game Over");
             builder.setMessage("Your final score: " + score);
