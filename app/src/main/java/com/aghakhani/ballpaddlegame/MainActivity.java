@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         mainHandler.post(() -> {
             mediaPlayer.start();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Game Over");
+            builder.setTitle("Gameُ Over");
             builder.setMessage("Your final score: " + score);
             builder.setCancelable(false);
             builder.setPositiveButton("Restart", (dialog, which) -> resetGame());
