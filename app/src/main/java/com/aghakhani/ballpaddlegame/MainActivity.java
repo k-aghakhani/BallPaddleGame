@@ -1,7 +1,6 @@
 package com.aghakhani.ballpaddlegame;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,46 +26,55 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize views
+        // Initialize UI components
         scoreTextView = findViewById(R.id.scoreTextView);
         gameContainer = findViewById(R.id.gameContainer);
 
-        // Create and add the ball view
+        // Initialize and add ball and paddle views to the game container
         ballView = new BallView(this);
         gameContainer.addView(ballView);
 
-        // Create and add the paddle view
         paddleView = new PaddleView(this);
         gameContainer.addView(paddleView);
 
+        // Initialize sound for game over
         mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
 
-        // Start the game
+        // Start the game loop
         startGameLoop();
     }
 
     private void startGameLoop() {
         isGameRunning = true;
 
+        // Game loop running in a separate thread
         gameThread = new Thread(() -> {
             while (isGameRunning) {
                 try {
-                    Thread.sleep(16); // Approximately 60 FPS
+                    Thread.sleep(16); // Target 60 FPS
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
                 }
 
+                // Update game state on the main thread
                 mainHandler.post(() -> {
                     if (isGameRunning) {
                         ballView.update();
 
+                        // Check for collision with paddle
                         if (ballView.isCollidingWith(paddleView)) {
                             score++;
                             ballView.bounceOffPaddle();
-                            ballView.increaseSpeed();
+                            // Increase speed significantly every 10 points
+                            if (score % 10 == 0) {
+                                ballView.increaseSpeedForMilestone();
+                            }
+                            ballView.increaseSpeed(); // Regular speed increase after each hit
                             scoreTextView.setText("Score: " + score);
-                        } else if (ballView.isOutOfBounds()) {
+                        }
+                        // Check if ball is out of bounds
+                        else if (ballView.isOutOfBounds()) {
                             isGameRunning = false;
                             showGameOverDialog();
                         }
@@ -81,10 +89,11 @@ public class MainActivity extends AppCompatActivity {
     private void showGameOverDialog() {
         if (isFinishing() || isDestroyed()) return;
 
+        // Show game over dialog on the main thread
         mainHandler.post(() -> {
             mediaPlayer.start();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Gameُ Over");
+            builder.setTitle("Game Over");
             builder.setMessage("Your final score: " + score);
             builder.setCancelable(false);
             builder.setPositiveButton("Restart", (dialog, which) -> resetGame());
@@ -97,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetGame() {
+        // Reset game state and restart the loop
         score = 0;
         scoreTextView.setText("Score: 0");
         ballView.reset();
@@ -131,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // Handle paddle movement based on touch input
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 paddleView.setPaddlePosition(event.getX());

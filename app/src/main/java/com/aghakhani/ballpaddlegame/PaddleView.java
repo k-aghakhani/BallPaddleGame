@@ -1,6 +1,5 @@
 package com.aghakhani.ballpaddlegame;
 
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -15,6 +14,7 @@ public class PaddleView extends View {
 
     public PaddleView(Context context) {
         super(context);
+        // Initialize paddle position and appearance
         paddleX = 400;
         paint = new Paint();
         paint.setColor(Color.BLUE);
@@ -23,11 +23,13 @@ public class PaddleView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        // Draw the paddle near the bottom of the screen
         float paddleY = getHeight() - 100;
         canvas.drawRect(paddleX, paddleY, paddleX + paddleWidth, paddleY + paddleHeight, paint);
     }
 
     public void setPaddlePosition(float x) {
+        // Update paddle position based on touch input
         paddleX = x - paddleWidth / 2;
         if (paddleX < 0) paddleX = 0;
         if (paddleX + paddleWidth > getWidth()) paddleX = getWidth() - paddleWidth;
@@ -35,18 +37,22 @@ public class PaddleView extends View {
     }
 
     public float getPaddleLeft() {
+        // Return left edge of the paddle
         return paddleX;
     }
 
     public float getPaddleRight() {
+        // Return right edge of the paddle
         return paddleX + paddleWidth;
     }
 
     public float getYPosition() {
+        // Return vertical position of the paddle
         return getHeight() - 100;
     }
 
     public float getPaddleHeight() {
+        // Return paddle height
         return paddleHeight;
     }
 }
