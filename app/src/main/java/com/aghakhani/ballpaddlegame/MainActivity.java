@@ -45,6 +45,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startGameLoop() {
+        // Ensure any previous game thread is stopped
+        if (gameThread != null && gameThread.isAlive()) {
+            isGameRunning = false;
+            try {
+                gameThread.join(); // Wait for the thread to finish
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
         isGameRunning = true;
 
         // Game loop running in a separate thread
@@ -103,7 +113,8 @@ public class MainActivity extends AppCompatActivity {
             builder.setMessage("You have successfully completed Level " + level + "!");
             builder.setCancelable(false);
             builder.setPositiveButton("Continue", (dialog, which) -> {
-                isGameRunning = true; // Resume the game
+                // Restart the game loop after dialog is dismissed
+                startGameLoop();
             });
             builder.show();
         });
@@ -159,6 +170,11 @@ public class MainActivity extends AppCompatActivity {
         isGameRunning = false;
         if (gameThread != null && gameThread.isAlive()) {
             gameThread.interrupt();
+        }
+        // Release media player resources
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
         }
     }
 
