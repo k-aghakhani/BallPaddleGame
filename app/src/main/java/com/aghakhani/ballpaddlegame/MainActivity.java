@@ -66,9 +66,10 @@ public class MainActivity extends AppCompatActivity {
                         if (ballView.isCollidingWith(paddleView)) {
                             score++;
                             ballView.bounceOffPaddle();
-                            // Increase speed significantly every 10 points
+                            // Increase speed significantly and show level dialog every 10 points
                             if (score % 10 == 0) {
                                 ballView.increaseSpeedForMilestone();
+                                showLevelUpDialog();
                             }
                             ballView.increaseSpeed(); // Regular speed increase after each hit
                             scoreTextView.setText("Score: " + score);
@@ -84,6 +85,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
         gameThread.start();
+    }
+
+    private void showLevelUpDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        // Pause the game while showing the dialog
+        isGameRunning = false;
+
+        // Calculate current level (score / 10)
+        int level = score / 10;
+
+        // Show level-up dialog on the main thread
+        mainHandler.post(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Level Up!");
+            builder.setMessage("You have successfully completed Level " + level + "!");
+            builder.setCancelable(false);
+            builder.setPositiveButton("Continue", (dialog, which) -> {
+                isGameRunning = true; // Resume the game
+            });
+            builder.show();
+        });
     }
 
     private void showGameOverDialog() {
