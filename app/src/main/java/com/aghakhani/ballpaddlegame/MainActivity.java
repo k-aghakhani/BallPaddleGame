@@ -11,7 +11,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer mediaPlayer; // For game over sound
+    private MediaPlayer lifeLostSound; // For life lost sound
     private BallView ballView;
     private PaddleView paddleView;
     private FrameLayout gameContainer;
@@ -38,8 +39,9 @@ public class MainActivity extends AppCompatActivity {
         paddleView = new PaddleView(this);
         gameContainer.addView(paddleView);
 
-        // Initialize sound for game over
+        // Initialize sounds
         mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
+        lifeLostSound = MediaPlayer.create(this, R.raw.life_lost_sound); // Initialize life lost sound
 
         // Update score text to include lives
         updateScoreAndLivesText();
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                         else if (ballView.isOutOfBounds()) {
                             lives--;
                             if (lives > 0) {
+                                lifeLostSound.start(); // Play life lost sound
                                 ballView.reset(); // Reset ball position and speed
                                 updateScoreAndLivesText();
                             } else {
@@ -191,6 +194,10 @@ public class MainActivity extends AppCompatActivity {
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+        if (lifeLostSound != null) {
+            lifeLostSound.release();
+            lifeLostSound = null;
         }
     }
 
