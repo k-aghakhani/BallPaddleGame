@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout gameContainer;
     private TextView scoreTextView;
     private int score = 0;
+    private int lives = 3; // Number of lives the player starts with
     private boolean isGameRunning = false;
     private Thread gameThread;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize sound for game over
         mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
+
+        // Update score text to include lives
+        updateScoreAndLivesText();
 
         // Start the game loop
         startGameLoop();
@@ -82,12 +86,18 @@ public class MainActivity extends AppCompatActivity {
                                 showLevelUpDialog();
                             }
                             ballView.increaseSpeed(); // Regular speed increase after each hit
-                            scoreTextView.setText("Score: " + score);
+                            updateScoreAndLivesText();
                         }
                         // Check if ball is out of bounds
                         else if (ballView.isOutOfBounds()) {
-                            isGameRunning = false;
-                            showGameOverDialog();
+                            lives--;
+                            if (lives > 0) {
+                                ballView.reset(); // Reset ball position and speed
+                                updateScoreAndLivesText();
+                            } else {
+                                isGameRunning = false;
+                                showGameOverDialog();
+                            }
                         }
                     }
                 });
@@ -128,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.start();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Game Over");
-            builder.setMessage("Your final score: " + score);
+            builder.setMessage("Your final score: " + score + "\nLives remaining: 0");
             builder.setCancelable(false);
             builder.setPositiveButton("Restart", (dialog, which) -> resetGame());
             builder.setNegativeButton("Exit", (dialog, which) -> {
@@ -142,9 +152,15 @@ public class MainActivity extends AppCompatActivity {
     private void resetGame() {
         // Reset game state and restart the loop
         score = 0;
-        scoreTextView.setText("Score: 0");
+        lives = 3; // Reset lives to initial value
+        scoreTextView.setText("Score: 0 | Lives: 3");
         ballView.reset();
         startGameLoop();
+    }
+
+    private void updateScoreAndLivesText() {
+        // Update the score and lives display
+        scoreTextView.setText("Score: " + score + " | Lives: " + lives);
     }
 
     @Override
