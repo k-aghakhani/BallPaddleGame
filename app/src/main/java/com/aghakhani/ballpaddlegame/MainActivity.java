@@ -11,17 +11,21 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-    private MediaPlayer mediaPlayer; // For game over sound
-    private MediaPlayer lifeLostSound; // For life lost sound
-    private BallView ballView;
-    private PaddleView paddleView;
-    private FrameLayout gameContainer;
-    private TextView scoreTextView;
-    private int score = 0;
-    private int lives = 3; // Number of lives the player starts with
-    private boolean isGameRunning = false;
-    private Thread gameThread;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private MediaPlayer mediaPlayer; // Media player for game over sound
+    private MediaPlayer lifeLostSound; // Media player for life lost sound
+    private MediaPlayer lifeGainedSound; // Media player for life gained sound
+    private BallView ballView; // Ball view instance
+    private HeartView heartView; // Heart view instance for bonus life
+    private PaddleView paddleView; // Paddle view instance
+    private FrameLayout gameContainer; // Container for game views
+    private TextView scoreTextView; // TextView to display score and lives
+    private int score = 0; // Player's current score
+    private int lives = 3; // Player's current lives
+    private boolean isGameRunning = false; // Flag to control game loop
+    private Thread gameThread; // Thread for game loop
+    private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for UI updates
+    private long lastHeartSpawnTime = 0; // Timestamp of last heart spawn
+    private static final long HEART_SPAWN_INTERVAL = 15000; // Interval for heart spawn (15 seconds)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,18 +36,22 @@ public class MainActivity extends AppCompatActivity {
         scoreTextView = findViewById(R.id.scoreTextView);
         gameContainer = findViewById(R.id.gameContainer);
 
-        // Initialize and add ball and paddle views to the game container
+        // Initialize and add ball, paddle, and heart views to the game container
         ballView = new BallView(this);
         gameContainer.addView(ballView);
 
         paddleView = new PaddleView(this);
         gameContainer.addView(paddleView);
 
-        // Initialize sounds
-        mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
-        lifeLostSound = MediaPlayer.create(this, R.raw.life_lost_sound); // Initialize life lost sound
+        heartView = new HeartView(this);
+        gameContainer.addView(heartView);
 
-        // Update score text to include lives
+        // Initialize sound effects
+        mediaPlayer = MediaPlayer.create(this, R.raw.lose_sound);
+        lifeLostSound = MediaPlayer.create(this, R.raw.life_lost_sound);
+        lifeGainedSound = MediaPlayer.create(this, R.raw.life_gained_sound); // Sound for gaining a life
+
+        // Update initial score and lives display
         updateScoreAndLivesText();
 
         // Start the game loop
@@ -51,11 +59,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startGameLoop() {
-        // Ensure any previous game thread is stopped
+        // Stop any existing game thread
         if (gameThread != null && gameThread.isAlive()) {
             isGameRunning = false;
             try {
-                gameThread.join(); // Wait for the thread to finish
+                gameThread.join();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -63,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         isGameRunning = true;
 
-        // Game loop running in a separate thread
+        // Game loop in a separate thread
         gameThread = new Thread(() -> {
             while (isGameRunning) {
                 try {
@@ -76,31 +84,46 @@ public class MainActivity extends AppCompatActivity {
                 // Update game state on the main thread
                 mainHandler.post(() -> {
                     if (isGameRunning) {
-                        ballView.update();
+                        ballView.update(); // Update ball position
+                        heartView.update(); // Update heart position
 
-                        // Check for collision with paddle
+                        // Check collision between ball and paddle
                         if (ballView.isCollidingWith(paddleView)) {
                             score++;
                             ballView.bounceOffPaddle();
-                            // Increase speed significantly and show level dialog every 10 points
                             if (score % 10 == 0) {
                                 ballView.increaseSpeedForMilestone();
                                 showLevelUpDialog();
                             }
-                            ballView.increaseSpeed(); // Regular speed increase after each hit
+                            ballView.increaseSpeed();
                             updateScoreAndLivesText();
                         }
                         // Check if ball is out of bounds
                         else if (ballView.isOutOfBounds()) {
                             lives--;
                             if (lives > 0) {
-                                lifeLostSound.start(); // Play life lost sound
-                                ballView.reset(); // Reset ball position and speed
+                                lifeLostSound.start();
+                                ballView.reset();
                                 updateScoreAndLivesText();
                             } else {
                                 isGameRunning = false;
                                 showGameOverDialog();
                             }
+                        }
+
+                        // Check collision between heart and paddle
+                        if (heartView.isCollidingWith(paddleView)) {
+                            lives++; // Increase lives by 1
+                            lifeGainedSound.start(); // Play life gained sound
+                            heartView.reset(); // Reset heart position
+                            updateScoreAndLivesText();
+                        }
+
+                        // Spawn heart periodically every 15 seconds
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastHeartSpawnTime >= HEART_SPAWN_INTERVAL) {
+                            heartView.reset();
+                            lastHeartSpawnTime = currentTime;
                         }
                     }
                 });
@@ -113,11 +136,10 @@ public class MainActivity extends AppCompatActivity {
     private void showLevelUpDialog() {
         if (isFinishing() || isDestroyed()) return;
 
-        // Pause the game while showing the dialog
+        // Pause the game while showing dialog
         isGameRunning = false;
 
-        // Calculate current level (score / 10)
-        int level = score / 10;
+        int level = score / 10; // Calculate current level
 
         // Show level-up dialog on the main thread
         mainHandler.post(() -> {
@@ -125,10 +147,7 @@ public class MainActivity extends AppCompatActivity {
             builder.setTitle("Level Up!");
             builder.setMessage("You have successfully completed Level " + level + "!");
             builder.setCancelable(false);
-            builder.setPositiveButton("Continue", (dialog, which) -> {
-                // Restart the game loop after dialog is dismissed
-                startGameLoop();
-            });
+            builder.setPositiveButton("Continue", (dialog, which) -> startGameLoop());
             builder.show();
         });
     }
@@ -144,20 +163,18 @@ public class MainActivity extends AppCompatActivity {
             builder.setMessage("Your final score: " + score + "\nLives remaining: 0");
             builder.setCancelable(false);
             builder.setPositiveButton("Restart", (dialog, which) -> resetGame());
-            builder.setNegativeButton("Exit", (dialog, which) -> {
-                isGameRunning = false;
-                finish();
-            });
+            builder.setNegativeButton("Exit", (dialog, which) -> finish());
             builder.show();
         });
     }
 
     private void resetGame() {
-        // Reset game state and restart the loop
+        // Reset game state and restart loop
         score = 0;
-        lives = 3; // Reset lives to initial value
+        lives = 3;
         scoreTextView.setText("Score: 0 | Lives: 3");
         ballView.reset();
+        heartView.reset();
         startGameLoop();
     }
 
@@ -198,6 +215,10 @@ public class MainActivity extends AppCompatActivity {
         if (lifeLostSound != null) {
             lifeLostSound.release();
             lifeLostSound = null;
+        }
+        if (lifeGainedSound != null) {
+            lifeGainedSound.release();
+            lifeGainedSound = null;
         }
     }
 
