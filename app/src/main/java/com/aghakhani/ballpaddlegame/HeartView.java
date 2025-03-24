@@ -10,7 +10,7 @@ import android.view.View;
 public class HeartView extends View {
     private float heartX, heartY; // Heart position
     private float heartSpeedY = 5; // Speed of heart moving downward
-    private final float heartSize = 40; // Size of the heart (width and height)
+    private final float heartSize = 60; // Size of the heart (increased from 40 to 60)
     private Bitmap heartBitmap; // Bitmap for heart image
     private Paint paint; // Paint object for drawing
     private boolean isVisible = false; // Visibility flag for heart
