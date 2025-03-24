@@ -1,15 +1,17 @@
 package com.aghakhani.ballpaddlegame;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
 
 public class HeartView extends View {
     private float heartX, heartY; // Heart position
     private float heartSpeedY = 5; // Speed of heart moving downward
-    private final float heartSize = 40; // Size of the heart
+    private final float heartSize = 40; // Size of the heart (width and height)
+    private Bitmap heartBitmap; // Bitmap for heart image
     private Paint paint; // Paint object for drawing
     private boolean isVisible = false; // Visibility flag for heart
 
@@ -18,15 +20,19 @@ public class HeartView extends View {
         heartX = 500; // Initial X position
         heartY = -heartSize; // Start above the screen
         paint = new Paint();
-        paint.setColor(Color.GREEN); // Set heart color to green
+
+        // Load the heart image from drawable resources
+        heartBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.heart);
+        // Scale the bitmap to the desired size (heartSize x heartSize)
+        heartBitmap = Bitmap.createScaledBitmap(heartBitmap, (int) heartSize, (int) heartSize, true);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (isVisible) {
-            // Draw a simple circle as a heart (for simplicity)
-            canvas.drawCircle(heartX, heartY, heartSize / 2, paint);
+            // Draw the heart bitmap at the specified position
+            canvas.drawBitmap(heartBitmap, heartX - heartSize / 2, heartY - heartSize / 2, paint);
         }
     }
 
@@ -43,7 +49,7 @@ public class HeartView extends View {
     public boolean isCollidingWith(PaddleView paddle) {
         if (!isVisible) return false; // No collision if heart is not visible
         float paddleY = paddle.getYPosition();
-        // Check collision with paddle
+        // Check collision with paddle (using heart center and size)
         return heartY + heartSize / 2 >= paddleY &&
                 heartY - heartSize / 2 <= paddleY + paddle.getPaddleHeight() &&
                 heartX >= paddle.getPaddleLeft() && heartX <= paddle.getPaddleRight();
