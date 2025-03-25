@@ -7,14 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- TextView for displaying score -->
+    <!-- TextView for displaying score, lives, and level -->
     <TextView
         android:id="@+id/scoreTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="Score: 0"
+        android:text="Score: 0 | Lives: 3 | Level: 1"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:background="@drawable/score_background"
@@ -22,7 +22,7 @@
         android:elevation="8dp"
         android:fontFamily="sans-serif-medium" />
 
-    <!-- Placeholder for Ball and Paddle -->
+    <!-- Placeholder for Ball, Paddle, and Heart -->
     <!-- These will be dynamically added in MainActivity -->
     <FrameLayout
         android:id="@+id/gameContainer"
